@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HungerStation ID Card Generator</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f7f6;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      justify-content: center;
+      max-width: 900px;
+      width: 100%;
+    }
+
+    /* ফর্ম স্টাইল */
+    .form-section {
+      background: #ffffff;
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      flex: 1;
+      min-width: 300px;
+    }
+
+    .form-section h2 {
+      margin-top: 0;
+      color: #333;
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #555;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
+
+    /* আইডি কার্ড প্রিভিউ স্টাইল */
+    .card-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .id-card {
+      width: 320px;
+      height: 520px;
+      background-color: #FBC02D;
+      border-radius: 28px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      overflow: hidden;
+      position: relative;
+      box-sizing: border-box;
+    }
+
+    .photo-container {
+      margin: 30px auto 20px auto;
+      width: 190px;
+      height: 240px;
+      border: 5px solid #1A0D00;
+      border-radius: 28px;
+      overflow: hidden;
+      background-color: #ffffff;
+    }
+
+    .photo-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .info-section {
+      padding: 0 25px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .info-row {
+      margin-bottom: 10px;
+      display: flex;
+    }
+
+    .label {
+      color: #0088E8;
+      width: 100px;
+      flex-shrink: 0;
+    }
+
+    .value {
+      color: #000000;
+      word-break: break-word;
+    }
+
+    .footer-banner {
+      background-color: #0088E8;
+      padding: 15px 10px;
+      border-top-left-radius: 40% 20px;
+      border-top-right-radius: 40% 20px;
+      color: #FFFFFF;
+      text-align: center;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+    }
+
+    .footer-banner .title-top {
+      font-size: 26px;
+      font-weight: 900;
+      display: block;
+      line-height: 1;
+    }
+
+    .footer-banner .title-bottom {
+      font-size: 30px;
+      font-weight: 900;
+      display: block;
+      line-height: 1;
+    }
+
+    .download-btn {
+      margin-top: 20px;
+      padding: 12px 30px;
+      background-color: #0088E8;
+      color: #ffffff;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      width: 100%;
+    }
+
+    #pdf-canvas {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- ইউজার ইনপুট ফর্ম -->
+  <div class="form-section">
+    <h2>তথ্য পরিবর্তন করুন</h2>
+    <div class="form-group">
+      <label>ছবি আপলোড করুন:</label>
+      <input type="file" id="input-photo" accept="image/*" onchange="previewImage(event)">
+    </div>
+    <div class="form-group">
+      <label>নাম (Name):</label>
+      <input type="text" id="input-name" value="SHAAID QASEM" oninput="updateCard()">
+    </div>
+    <div class="form-group">
+      <label>মোবাইল নম্বর (Mobile):</label>
+      <input type="text" id="input-mobile" value="0561552719" oninput="updateCard()">
+    </div>
+    <div class="form-group">
+      <label>আইডি নম্বর (ID Number):</label>
+      <input type="text" id="input-id" value="2464658877" oninput="updateCard()">
+    </div>
+    <button class="download-btn" onclick="buildCardPDF()">Download PDF</button>
+  </div>
+
+  <!-- লাইভ কার্ড প্রিভিউ -->
+  <div class="card-section">
+    <div class="id-card">
+      <div class="photo-container">
+        <img id="user-photo" src="https://via.placeholder.com/200x250" alt="Profile Photo">
+      </div>
+      <div class="info-section">
+        <div class="info-row">
+          <span class="label">Name:</span>
+          <span class="value" id="val-name">SHAAID QASEM</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Mobile:</span>
+          <span class="value" id="val-mobile">0561552719</span>
+        </div>
+        <div class="info-row">
+          <span class="label">ID Number:</span>
+          <span class="value" id="val-id">2464658877</span>
+        </div>
+      </div>
+      <div class="footer-banner">
+        <span class="title-top">HUNGER</span>
+        <span class="title-bottom">STATION</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<canvas id="pdf-canvas" width="640" height="1040"></canvas>
+
+<script>
+  // ছবি সিলেক্ট করার সাথে সাথে কার্ডে দেখানো
+  function previewImage(event) {
+    const reader = new FileReader();
+    reader.onload = function() {
+      const output = document.getElementById('user-photo');
+      output.src = reader.result;
+    };
+    if (event.target.files[0]) {
+      reader.readAsDataURL(event.target.files[0]);
+    }
+  }
+
+  // ইনপুট দেওয়ার সাথে সাথে কার্ডের টেক্সট পরিবর্তন হওয়া
+  function updateCard() {
+    document.getElementById('val-name').innerText = document.getElementById('input-name').value;
+    document.getElementById('val-mobile').innerText = document.getElementById('input-mobile').value;
+    document.getElementById('val-id').innerText = document.getElementById('input-id').value;
+  }
+
+  // রাউন্ডেড বক্স আঁকার হেল্পার
+  function drawRoundedRect(ctx, x, y, width, height, radius) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+  }
+
+  // PDF তৈরি
+  function buildCardPDF() {
+    const { jsPDF } = window.jspdf;
+    const canvas = document.getElementById('pdf-canvas');
+    const ctx = canvas.getContext('2d');
+
+    ctx.clearRect(0, 0, 640, 1040);
+    drawRoundedRect(ctx, 0, 0, 640, 1040, 48);
+    ctx.fillStyle = "#FBC02D";
+    ctx.fill();
+
+    const frameX = 130, frameY = 70, frameW = 380, frameH = 480, frameRadius = 50;
+    
+    drawRoundedRect(ctx, frameX, frameY, frameW, frameH, frameRadius);
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fill();
+
+    const imgElement = document.getElementById('user-photo');
+    try {
+      ctx.save();
+      drawRoundedRect(ctx, frameX + 6, frameY + 6, frameW - 12, frameH - 12, frameRadius - 6);
+      ctx.clip();
+      ctx.drawImage(imgElement, frameX + 6, frameY + 6, frameW - 12, frameH - 12);
+      ctx.restore();
+    } catch(e) {
+      console.log("Image rendering error.");
+    }
+
+    drawRoundedRect(ctx, frameX, frameY, frameW, frameH, frameRadius);
+    ctx.lineWidth = 12;
+    ctx.strokeStyle = "#1A0D00";
+    ctx.stroke();
+
+    const name = document.getElementById('val-name').innerText;
+    const mobile = document.getElementById('val-mobile').innerText;
+    const idNum = document.getElementById('val-id').innerText;
+
+    ctx.textBaseline = "middle";
+    ctx.font = "bold 34px Arial, sans-serif";
+
+    const labelX = 60, valueX = 260;
+
+    ctx.fillStyle = "#0088E8";
+    ctx.fillText("Name:", labelX, 610);
+    ctx.fillStyle = "#000000";
+    ctx.fillText(name, valueX, 610);
+
+    ctx.fillStyle = "#0088E8";
+    ctx.fillText("Mobile:", labelX, 680);
+    ctx.fillStyle = "#000000";
+    ctx.fillText(mobile, valueX, 680);
+
+    ctx.fillStyle = "#0088E8";
+    ctx.fillText("ID Number:", labelX, 750);
+    ctx.fillStyle = "#000000";
+    ctx.fillText(idNum, valueX + 40, 750);
+
+    ctx.fillStyle = "#0088E8";
+    ctx.beginPath();
+    ctx.moveTo(0, 860);
+    ctx.quadraticCurveTo(320, 800, 640, 860);
+    ctx.lineTo(640, 1040);
+    ctx.lineTo(0, 1040);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = "#FFFFFF";
+    ctx.textAlign = "center";
+    ctx.font = "900 54px Arial, sans-serif";
+    ctx.fillText("HUNGER", 320, 915);
+    ctx.font = "900 60px Arial, sans-serif";
+    ctx.fillText("STATION", 320, 975);
+
+    const imgData = canvas.toDataURL('image/jpeg', 1.0);
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: [85, 138]
+    });
+
+    pdf.addImage(imgData, 'JPEG', 0, 0, 85, 138);
+    pdf.save('HungerStation_ID_Card.pdf');
+  }
+</script>
+</body>
+</html>
+
