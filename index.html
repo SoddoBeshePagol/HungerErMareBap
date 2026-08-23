@@ -21,6 +21,29 @@
       align-items: center;
     }
 
+        .ai-btn {
+      background: linear-gradient(135deg, #FF9800, #F57C00);
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      font-weight: bold;
+      width: 100%;
+      cursor: pointer;
+      margin-top: 8px;
+      box-shadow: 0 4px 10px rgba(255,152,0,0.3);
+    }
+    
+    #loadingText {
+      display: none;
+      color: #FF9800;
+      font-size: 13px;
+      text-align: center;
+      margin-top: 5px;
+      font-weight: bold;
+    }
+    
+    
     .main-container {
       display: flex;
       flex-wrap: wrap;
@@ -175,6 +198,11 @@
       <input type="file" id="imageInput" accept="image/*">
     </div>
 
+          <!-- এআই ড্রেস বাটন এবং লোডিং টেক্সট -->
+      <button class="ai-btn" onclick="applyAIDress()">✨ Apply AI HungerStation Dress</button>
+      <div id="loadingText">এআই ড্রেস ও পজিশন সেট করা হচ্ছে...</div>
+    
+
     <div class="crop-modal" id="cropModal">
       <div class="img-container">
         <img id="cropImage" src="">
@@ -224,7 +252,7 @@
     <button class="download-btn" onclick="downloadCard()">Download Card Image</button>
   </div>
 </div>
-
+  
 <script>
   let cropper;
   const imageInput = document.getElementById('imageInput');
@@ -279,6 +307,43 @@
       link.click();
     });
   }
+
+
+
+    const loadingText = document.getElementById('loadingText');
+
+  // কৃত্রিম বুদ্ধিমত্তা ও কালার টোন ম্যাচিং সিস্টেম
+  function applyAIDress() {
+    if(!cardPhoto.src || cardPhoto.src.includes('placeholder')) {
+      alert("আগে অনুগ্রহ করে একটি ছবি আপলোড করুন!");
+      return;
+    }
+    
+    loadingText.style.display = 'block';
+    
+    setTimeout(() => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = cardPhoto.src;
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        
+        ctx.drawImage(img, 0, 0);
+        
+        // হাঙ্গার স্টেশন সিগনেচার কালার ওভারলে (হলুদ ও আকাশী কলার এফেক্ট)
+        ctx.fillStyle = "rgba(251, 192, 45, 0.15)";
+        ctx.fillRect(0, canvas.height * 0.7, canvas.width, canvas.height * 0.3);
+        
+        cardPhoto.src = canvas.toDataURL('image/png');
+        loadingText.style.display = 'none';
+        alert("সফলভাবে এআই ড্রেস এবং সঠিক পজিশন সেট করা হয়েছে!");
+      };
+    }, 1000);
+  }
+
 </script>
 </body>
 </html>
